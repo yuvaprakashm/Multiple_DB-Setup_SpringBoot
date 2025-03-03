@@ -6,6 +6,7 @@ import java.util.Map;
 import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,33 +16,34 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 
+import com.zaxxer.hikari.HikariDataSource;
+
 import jakarta.persistence.EntityManagerFactory;
 
 @Configuration
 @EnableJpaRepositories(
     basePackages = "net.texala.database.repository.mysql",
-    entityManagerFactoryRef = "mysqlEntityManager",
+    entityManagerFactoryRef = "mysqlEntityManagerFactory",
     transactionManagerRef = "mysqlTransactionManager"
 )
 public class MySQLConfig {
-	
-	@Bean(name = "mysqlDataSource")
-    public DataSource mysqlDataSource() {
+
+    @Bean(name = "mysqlDataSource")
+    @ConfigurationProperties(prefix = "spring.datasource.mysql")
+    public HikariDataSource mysqlDataSource() {
         return DataSourceBuilder.create()
-                .url("jdbc:mysql://localhost:3306/mysqldb")
-                .username("root")
-                .password("root")
-                .driverClassName("com.mysql.cj.jdbc.Driver")
-                .build();
+        		.type(HikariDataSource.class)
+        		.build();
     }
-	
-    @Bean
-    public LocalContainerEntityManagerFactoryBean mysqlEntityManager(DataSource mysqlDataSource) {
+
+    @Bean(name = "mysqlEntityManagerFactory")
+    public LocalContainerEntityManagerFactoryBean mysqlEntityManagerFactory(
+            @Qualifier("mysqlDataSource") DataSource dataSource) {
         Map<String, String> properties = new HashMap<>();
         properties.put("hibernate.dialect", "org.hibernate.dialect.MySQLDialect");
 
         LocalContainerEntityManagerFactoryBean entityManager = new LocalContainerEntityManagerFactoryBean();
-        entityManager.setDataSource(mysqlDataSource);
+        entityManager.setDataSource(dataSource);
         entityManager.setPackagesToScan("net.texala.database.model.mysql");
         entityManager.setPersistenceUnitName("mysql");
         entityManager.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
@@ -52,7 +54,7 @@ public class MySQLConfig {
 
     @Bean(name = "mysqlTransactionManager")
     public PlatformTransactionManager mysqlTransactionManager(
-            @Qualifier("mysqlEntityManager") EntityManagerFactory entityManagerFactory) {
+            @Qualifier("mysqlEntityManagerFactory") EntityManagerFactory entityManagerFactory) {
         return new JpaTransactionManager(entityManagerFactory);
     }
 }

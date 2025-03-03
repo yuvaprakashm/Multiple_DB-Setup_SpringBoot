@@ -6,6 +6,7 @@ import java.util.Map;
 import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,33 +16,34 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 
+import com.zaxxer.hikari.HikariDataSource;
+
 import jakarta.persistence.EntityManagerFactory;
 
 @Configuration
 @EnableJpaRepositories(
     basePackages = "net.texala.database.repository.postgres",
-    entityManagerFactoryRef = "postgresEntityManager",
+    entityManagerFactoryRef = "postgresEntityManagerFactory",
     transactionManagerRef = "postgresTransactionManager"
 )
 public class PostgresConfig {
-	
-	@Bean(name = "postgresDataSource")
-    public DataSource postgresDataSource() {
+
+    @Bean(name = "postgresDataSource")
+    @ConfigurationProperties(prefix = "spring.datasource.postgres")
+    public HikariDataSource postgresDataSource() {
         return DataSourceBuilder.create()
-                .url("jdbc:postgresql://localhost:5432/database")
-                .username("postgres")
-                .password("root")
-                .driverClassName("org.postgresql.Driver")
-                .build();
+        		.type(HikariDataSource.class)
+        		.build();
     }
-	
-    @Bean
-    public LocalContainerEntityManagerFactoryBean postgresEntityManager(DataSource postgresDataSource) {
+
+    @Bean(name = "postgresEntityManagerFactory")
+    public LocalContainerEntityManagerFactoryBean postgresEntityManagerFactory(
+            @Qualifier("postgresDataSource") DataSource dataSource) {
         Map<String, String> properties = new HashMap<>();
         properties.put("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
 
         LocalContainerEntityManagerFactoryBean entityManager = new LocalContainerEntityManagerFactoryBean();
-        entityManager.setDataSource(postgresDataSource);
+        entityManager.setDataSource(dataSource);
         entityManager.setPackagesToScan("net.texala.database.model.postgres");
         entityManager.setPersistenceUnitName("postgres");
         entityManager.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
@@ -52,8 +54,7 @@ public class PostgresConfig {
 
     @Bean(name = "postgresTransactionManager")
     public PlatformTransactionManager postgresTransactionManager(
-            @Qualifier("postgresEntityManager") EntityManagerFactory postgresEntityManager) {
+            @Qualifier("postgresEntityManagerFactory") EntityManagerFactory postgresEntityManager) {
         return new JpaTransactionManager(postgresEntityManager);
     }
-
 }
