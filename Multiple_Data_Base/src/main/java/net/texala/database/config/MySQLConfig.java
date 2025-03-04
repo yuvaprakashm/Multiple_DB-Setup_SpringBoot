@@ -16,8 +16,6 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 
-import com.zaxxer.hikari.HikariDataSource;
-
 import jakarta.persistence.EntityManagerFactory;
 
 @Configuration
@@ -30,10 +28,8 @@ public class MySQLConfig {
 
     @Bean(name = "mysqlDataSource")
     @ConfigurationProperties(prefix = "spring.datasource.mysql")
-    public HikariDataSource mysqlDataSource() {
-        return DataSourceBuilder.create()
-        		.type(HikariDataSource.class)
-        		.build();
+    public DataSource mysqlDataSource() {
+        return  DataSourceBuilder.create().build();
     }
 
     @Bean(name = "mysqlEntityManagerFactory")
