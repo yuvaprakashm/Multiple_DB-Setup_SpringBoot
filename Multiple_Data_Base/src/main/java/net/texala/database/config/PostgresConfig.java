@@ -1,8 +1,5 @@
 package net.texala.database.config;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -35,15 +32,13 @@ public class PostgresConfig {
     @Bean(name = "postgresEntityManagerFactory")
     public LocalContainerEntityManagerFactoryBean postgresEntityManagerFactory(
             @Qualifier("postgresDataSource") DataSource dataSource) {
-        Map<String, String> properties = new HashMap<>();
-        properties.put("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
 
         LocalContainerEntityManagerFactoryBean entityManager = new LocalContainerEntityManagerFactoryBean();
         entityManager.setDataSource(dataSource);
         entityManager.setPackagesToScan("net.texala.database.model.postgres");
         entityManager.setPersistenceUnitName("postgres");
         entityManager.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
-        entityManager.setJpaPropertyMap(properties);
+        entityManager.getJpaPropertyMap().put("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");;
 
         return entityManager;
     }
