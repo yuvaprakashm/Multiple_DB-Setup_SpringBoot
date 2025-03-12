@@ -38,7 +38,7 @@ public class PostgresConfig {
         entityManager.setPackagesToScan("net.texala.database.model.postgres");
         entityManager.setPersistenceUnitName("postgres");
         entityManager.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
-        entityManager.getJpaPropertyMap().put("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");;
+        entityManager.getJpaPropertyMap().put("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
 
         return entityManager;
     }
