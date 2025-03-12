@@ -2,6 +2,7 @@ package net.texala.database.web.rest;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -21,13 +22,13 @@ public class EmployeeController {
     private EmployeeService employeeService;
 
     @GetMapping("/postgres")
-	public ResponseEntity<Object> getPostgresEmployees() {
+	public ResponseEntity<Map<String, List<postgresEmployee>>> getPostgresEmployees() {
 		List<postgresEmployee> postgresData = employeeService.getPostgresEmployees();
 		return ResponseEntity.ok(Collections.singletonMap("data", postgresData != null ? postgresData : null));
 	}
 
     @GetMapping("/mysql")
-    public ResponseEntity<Object> getMySQLEmployees() {
+    public ResponseEntity<Map<String, List<MysqlEmployee>>> getMySQLEmployees() {
         List<MysqlEmployee> mysqlData = employeeService.getMysqlEmployees();
         return ResponseEntity.ok(Collections.singletonMap("data", mysqlData != null ? mysqlData : null));
     }
